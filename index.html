@@ -1,0 +1,49 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Адвент-колесо</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#fff0f7;--ink:#4a1f3b;--pink:#ff7ccf;--deep:#d83fa0}
+@media(prefers-color-scheme:dark){:root{--bg:#2a1422;--ink:#ffe3f3}}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;background:var(--bg);color:var(--ink);font-family:Georgia,"Times New Roman",serif}
+h1{margin:0;font-size:26px;font-weight:700}
+.box{position:relative;width:min(84vw,340px);aspect-ratio:1}
+canvas{width:100%;height:100%;border-radius:50%;box-shadow:0 8px 30px #d83fa055;transition:transform 5.5s cubic-bezier(.12,.7,.1,1)}
+.pin{position:absolute;left:50%;top:-14px;transform:translateX(-50%);font-size:30px;line-height:1;color:var(--deep)}
+button{border:0;border-radius:16px;padding:15px 34px;font:700 18px Georgia,serif;background:var(--pink);color:#fff;box-shadow:0 6px 16px #ff7ccf88}
+button:disabled{opacity:.6}
+#res{min-height:30px;font-size:22px;text-align:center}
+@media(prefers-reduced-motion:reduce){canvas{transition-duration:.5s}}
+</style></head><body>
+<h1>Колесо на сегодня</h1>
+<div class="box"><div class="pin">▼</div><canvas id="w" width="680" height="680"></canvas></div>
+<div id="res"></div>
+<button id="b">Крутить</button>
+<script>
+const tg=Telegram.WebApp;tg.ready();tg.expand();
+const q=new URLSearchParams(location.search),code=q.get('c'),target=+q.get('t'),left=(q.get('l')||'0,1,2,3,4').split(',').map(Number);
+const C=[["💝","Самый желанный"],["🍫","Сладость"],["🧦","Практичный подарок"],["💌","Открыточка"],["🤗","Тактильность"]];
+const cv=document.getElementById('w'),x=cv.getContext('2d'),n=5,arc=2*Math.PI/n,r=340;
+const cols=["#ff7ccf","#ffb3e0"];
+C.forEach((c,i)=>{
+  const a0=-Math.PI/2+i*arc;
+  x.beginPath();x.moveTo(r,r);x.arc(r,r,r-4,a0,a0+arc);x.closePath();
+  x.fillStyle=left.includes(i)?cols[i%2]:"#d9cfd5";x.fill();
+  x.strokeStyle="#fff";x.lineWidth=5;x.stroke();
+  const a=a0+arc/2;x.font="64px serif";x.textAlign="center";x.textBaseline="middle";
+  x.globalAlpha=left.includes(i)?1:.4;
+  x.fillText(c[0],r+Math.cos(a)*r*.62,r+Math.sin(a)*r*.62);x.globalAlpha=1;
+});
+const b=document.getElementById('b'),res=document.getElementById('res');
+b.onclick=()=>{
+  b.disabled=true;
+  const jitter=(Math.random()-.5)*72*.6;
+  cv.style.transform=`rotate(${360*6-(target+.5)*72+jitter}deg)`;
+};
+cv.ontransitionend=()=>{
+  res.textContent=C[target][0]+" "+C[target][1];
+  b.textContent="Открыть подарок 🎁";b.disabled=false;
+  b.onclick=()=>tg.sendData(code);
+};
+</script></body></html>
